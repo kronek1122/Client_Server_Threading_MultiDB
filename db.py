@@ -1,6 +1,7 @@
+import time
+import sqlite3
 import psycopg2
 from db_connection_pool import ConnectionPool
-import time
 
 class DatabaseManager:
     def __init__(self, database, user, password, host):
@@ -22,7 +23,7 @@ class DatabaseManager:
             conn.commit()
             msg = 'User succesfully registered'
             self.connection_pool.release_connection(conn)
-        except psycopg2.errors.UniqueViolation:
+        except (psycopg2.Error, sqlite3.Error):
             conn.rollback()
             msg = 'User already exist'
         return msg
@@ -54,7 +55,7 @@ class DatabaseManager:
             time.sleep(0.1) #Added only to slow down working of threading
             self.connection_pool.release_connection(conn)
             return result
-        except psycopg2.errors.ProgrammingError as exp:
+        except (psycopg2.Error, sqlite3.Error) as exp:
             return f"Error getting users: {exp}"
     
 
@@ -78,24 +79,26 @@ class DatabaseManager:
             conn.commit()
             msg = f'You successfully send message to user {user_name}'
             self.connection_pool.release_connection(conn)
-        except psycopg2.errors.UndefinedTable:
+        except (psycopg2.Error, sqlite3.Error):
             conn.rollback()
             msg = "User doesn't exist"
         return msg
 
 
     def count_unread(self, user_name):
-        query = f"SELECT COUNT(*) FROM {user_name} WHERE is_unread = 'TRUE';"
-        conn = self.connection_pool.get_connection()
-        curr = conn.cursor()
-        curr.execute(query)
-        result = curr.fetchone()
-        self.connection_pool.release_connection(conn)
-        if result is not None:
-            return result[0]
-        else:
+        try:
+            query = f"SELECT COUNT(*) FROM {user_name} WHERE is_unread = 'TRUE';"
+            conn = self.connection_pool.get_connection()
+            curr = conn.cursor()
+            curr.execute(query)
+            result = curr.fetchone()
+            self.connection_pool.release_connection(conn)
+            if result is not None:
+                return result[0]
+            else:
+                return 0
+        except (psycopg2.Error, sqlite3.Error):
             return 0
-
 
     def is_user_admin(self, user_name):
         query = f"SELECT is_admin FROM user_info WHERE user_name = '{user_name}'"
