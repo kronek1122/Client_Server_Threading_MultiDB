@@ -8,7 +8,7 @@ db_database = os.getenv('database')
 db_user = os.getenv('user')
 db_password = os.getenv('password')
 db_host = os.getenv('host')
- 
+
 
 def stress_test():
     users = db.get_users()
@@ -26,5 +26,3 @@ if __name__ == "__main__":
 
     for thread in threads:
         thread.join()
-
-
