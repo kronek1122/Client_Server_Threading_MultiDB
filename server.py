@@ -29,7 +29,6 @@ class Server:
             'send <user name> <massage>': 'send a message to the selected user',
             'inbox' : 'check messages in your inbox',
             'unread' : 'check only unread messages',
-            'disconnect' : 'disconnect client from server'
         }
         return json.dumps(msg, indent=1)
 
