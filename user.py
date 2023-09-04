@@ -5,20 +5,22 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-db_database = os.getenv('database')
-db_user = os.getenv('user')
-db_password = os.getenv('password')
-db_host = os.getenv('host')
-db_port = os.getenv('port')
-
-
 class User:
     '''Represents a user in the system with methods for user registration, login, 
     show all existing users, sending message, check inbox and chech only unread messages.'''
 
     def __init__(self):
         self.active_user = ''
-        self.db = DatabaseManager(db_database, db_user, db_password, db_host)
+        postgres_config_str = os.getenv('POSTGRES_CONFIG')
+        self.postgres_config = eval(postgres_config_str)
+        sqlite_config_str = os.getenv('SQLITE_CONFIG')
+        self.sqlite_config = eval(sqlite_config_str)
+        self.db_type = os.getenv('db_type')
+        
+        if self.db_type == 'postgresql':
+            self.db = DatabaseManager(**self.postgres_config)
+        else:
+            self.db = DatabaseManager(**self.sqlite_config)
 
 
     def register(self, username, password, is_admin='false'):
