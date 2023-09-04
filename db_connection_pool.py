@@ -1,7 +1,8 @@
 import threading
 import time
-from queue import Queue, Empty, Full
+import sqlite3
 import psycopg2
+from queue import Queue, Empty, Full
 
 
 class ConnectionPool:
@@ -31,12 +32,20 @@ class ConnectionPool:
     def create_connection(self):
         with self.semaphore:
             if (self.connections_queue.qsize() + self.active_connections) < self.max_connections:
-                try:
-                    connection = psycopg2.connect(database = self.database, user = self.user, password = self.password, host =self.host)
-                    self.connections_queue.put(connection)
-                except Exception as exp:
-                    print("Error creating connection:", exp)
-                    return None
+                if self.user != 'None' and self.password != 'None' and self.host != 'None':
+                    try:
+                        connection = psycopg2.connect(database = self.database, user = self.user, password = self.password, host =self.host)
+                        self.connections_queue.put(connection)
+                    except Exception as exp:
+                        print("Error creating connection:", exp)
+                        return None
+                else: 
+                    try:
+                        connection = sqlite3.connect(database = self.database)
+                        self.connections_queue.put(connection)
+                    except Exception as exp:
+                        print("Error creating connection:", exp)
+                        return None
             else:
                 return None
 
