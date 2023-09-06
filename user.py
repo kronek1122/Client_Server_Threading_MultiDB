@@ -1,26 +1,15 @@
-import os
 import json
-from db import DatabaseManager
-from dotenv import load_dotenv
+from selector import DatabaseSelector
 
-load_dotenv()
 
 class User:
     '''Represents a user in the system with methods for user registration, login, 
     show all existing users, sending message, check inbox and chech only unread messages.'''
 
+
     def __init__(self):
         self.active_user = ''
-        postgres_config_str = os.getenv('POSTGRES_CONFIG')
-        self.postgres_config = eval(postgres_config_str)
-        sqlite_config_str = os.getenv('SQLITE_CONFIG')
-        self.sqlite_config = eval(sqlite_config_str)
-        self.db_type = os.getenv('db_type')
-        
-        if self.db_type == 'postgresql':
-            self.db = DatabaseManager(**self.postgres_config)
-        else:
-            self.db = DatabaseManager(**self.sqlite_config)
+        self.db = DatabaseSelector().database_type()
 
 
     def register(self, username, password, is_admin='false'):
