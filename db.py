@@ -1,14 +1,25 @@
 import time
+import os
 import sqlite3
 import psycopg2
+from dotenv import load_dotenv
 from db_connection_pool import ConnectionPool
+
+load_dotenv()
+
+# dodano warunki logiczne wyboru zapytań dla nie uniwersalnych metod - czy da się to zrobić inaczej? 
+
+db_type = os.getenv('db_type')
 
 class DatabaseManager:
     def __init__(self, database, user, password, host):
         self.connection_pool = ConnectionPool(database, user, password, host)
 
     def add_user(self, user_name, password, is_admin):
-        query = "INSERT INTO user_info (user_name, password, is_admin) VALUES (%s, %s, %s);"
+        if db_type == 'sqlite':
+            query = "INSERT INTO user_info (user_name, password, is_admin) VALUES (?, ?, ?);"
+        else:
+            query = "INSERT INTO user_info (user_name, password, is_admin) VALUES (%s, %s, %s);"
         user_table = f"""CREATE TABLE {user_name} (
                         message_id SERIAL PRIMARY KEY,
                         message_text VARCHAR(255),
@@ -30,7 +41,10 @@ class DatabaseManager:
 
 
     def login_user(self, user_name, password):
-        query = "SELECT * FROM user_info WHERE user_name = (%s) AND password = (%s)"
+        if db_type == 'sqlite':
+            query = "SELECT * FROM user_info WHERE user_name = (?) AND password = (?)"
+        else:
+            query = "SELECT * FROM user_info WHERE user_name = (%s) AND password = (%s)"
         conn = self.connection_pool.get_connection()
         curr = conn.cursor()
         curr.execute(query, (user_name, password))
@@ -115,7 +129,10 @@ class DatabaseManager:
         
 
     def get_message(self, user_name):
-        query = f"SELECT sender, TO_CHAR(timestamp, 'YYYY-MM-DD HH:MI:SS'), message_text FROM {user_name};"
+        if db_type == 'sqlite':
+            query = f"SELECT sender, strftime('%Y-%m-%d %H:%M:%S', timestamp), message_text FROM {user_name};"
+        else:
+            query = f"SELECT sender, TO_CHAR(timestamp, 'YYYY-MM-DD HH:MI:SS'), message_text FROM {user_name};"
         conn = self.connection_pool.get_connection()
         curr = conn.cursor()
         curr.execute(query)
@@ -127,7 +144,10 @@ class DatabaseManager:
     
 
     def get_unread_message(self, user_name):
-        query = f"SELECT sender, TO_CHAR(timestamp, 'YYYY-MM-DD HH:MI:SS'), message_text FROM {user_name} WHERE is_unread = TRUE;"
+        if db_type == 'sqlite':
+            query = f"SELECT sender, strftime('%Y-%m-%d %H:%M:%S', timestamp), message_text FROM {user_name} WHERE is_unread = TRUE;"
+        else:
+            query = f"SELECT sender, TO_CHAR(timestamp, 'YYYY-MM-DD HH:MI:SS'), message_text FROM {user_name} WHERE is_unread = TRUE;"
         conn = self.connection_pool.get_connection()
         curr = conn.cursor()
         curr.execute(query)
