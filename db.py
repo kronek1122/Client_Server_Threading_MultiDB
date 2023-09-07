@@ -2,21 +2,18 @@ import time
 import os
 import sqlite3
 import psycopg2
-from dotenv import load_dotenv
 from db_connection_pool import ConnectionPool
+from selector import DatabaseSelector
 
-load_dotenv()
-
-# dodano warunki logiczne wyboru zapytań dla nie uniwersalnych metod - czy da się to zrobić inaczej? 
-
-db_type = os.getenv('db_type')
 
 class DatabaseManager:
     def __init__(self, database, user, password, host):
         self.connection_pool = ConnectionPool(database, user, password, host)
+        self.db_type = DatabaseSelector().database_type()
+
 
     def add_user(self, user_name, password, is_admin):
-        if db_type == 'sqlite':
+        if self.db_type == 'sqlite':
             query = "INSERT INTO user_info (user_name, password, is_admin) VALUES (?, ?, ?);"
         else:
             query = "INSERT INTO user_info (user_name, password, is_admin) VALUES (%s, %s, %s);"
@@ -41,7 +38,7 @@ class DatabaseManager:
 
 
     def login_user(self, user_name, password):
-        if db_type == 'sqlite':
+        if self.db_type == 'sqlite':
             query = "SELECT * FROM user_info WHERE user_name = (?) AND password = (?)"
         else:
             query = "SELECT * FROM user_info WHERE user_name = (%s) AND password = (%s)"
@@ -129,7 +126,7 @@ class DatabaseManager:
         
 
     def get_message(self, user_name):
-        if db_type == 'sqlite':
+        if self.db_type == 'sqlite':
             query = f"SELECT sender, strftime('%Y-%m-%d %H:%M:%S', timestamp), message_text FROM {user_name};"
         else:
             query = f"SELECT sender, TO_CHAR(timestamp, 'YYYY-MM-DD HH:MI:SS'), message_text FROM {user_name};"
@@ -144,7 +141,7 @@ class DatabaseManager:
     
 
     def get_unread_message(self, user_name):
-        if db_type == 'sqlite':
+        if self.db_type == 'sqlite':
             query = f"SELECT sender, strftime('%Y-%m-%d %H:%M:%S', timestamp), message_text FROM {user_name} WHERE is_unread = TRUE;"
         else:
             query = f"SELECT sender, TO_CHAR(timestamp, 'YYYY-MM-DD HH:MI:SS'), message_text FROM {user_name} WHERE is_unread = TRUE;"

@@ -1,7 +1,5 @@
-import os
 import threading
 from selector import DatabaseSelector
-
 
 
 def stress_test():
@@ -10,7 +8,7 @@ def stress_test():
 
 if __name__ == "__main__":
 
-    db = DatabaseSelector().database_type()
+    db = DatabaseSelector().connection_db_manager()
     NUM_CONNECTIONS = 10000  # Number of concurrent connections
 
     threads = []

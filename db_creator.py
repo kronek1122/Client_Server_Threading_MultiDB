@@ -1,32 +1,16 @@
-import os
-from dotenv import load_dotenv
-from db_connection_pool import ConnectionPool
-
-load_dotenv()
+from selector import DatabaseSelector
 
 
 class DatabaseCreator:
+
     def __init__(self):
-        postgres_config_str = os.getenv('POSTGRES_CONFIG')
-        self.postgres_config = eval(postgres_config_str)
-        sqlite_config_str = os.getenv('SQLITE_CONFIG')
-        self.sqlite_config = eval(sqlite_config_str)
-        self.db_type = os.getenv('db_type')
+        self.db_type = DatabaseSelector().database_type()
 
 
     def create_connection(self):
-        if self.db_type == 'postgresql':
-            try:
-                conn = ConnectionPool(**self.postgres_config)
-            except Exception as exp:
-                print("Error:", exp)
-        else:
-            try:
-                conn = ConnectionPool(**self.sqlite_config)
-            except Exception as exp:
-                print("Error:", exp)
+        conn = DatabaseSelector().connection_conn_pool()
         return conn
-    
+
 
     def create_database(self):
         if self.db_type == 'postgresql':

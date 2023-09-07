@@ -1,12 +1,7 @@
-
-'''
-Coś co zwraca połączenie w zależności jak wygląda zmienna db_type w .env,
-można wtedy skrócić kod w , user.py, stress_test.py
-'''
-
 import os
 from dotenv import load_dotenv
 from db import DatabaseManager
+from db_connection_pool import ConnectionPool
 
 load_dotenv()
 
@@ -21,10 +16,27 @@ class DatabaseSelector:
         self.db_type = os.getenv('db_type')
 
 
-    def database_type(self):
+    def connection_db_manager(self):
         if self.db_type == 'postgresql':
             db_conn = DatabaseManager(**self.postgres_config)
         else:
             db_conn = DatabaseManager(**self.sqlite_config)
-
         return db_conn
+    
+
+    def connection_conn_pool(self):
+        if self.db_type == 'postgresql':
+            try:
+                conn = ConnectionPool(**self.postgres_config)
+            except Exception as exp:
+                print("Error:", exp)
+        else:
+            try:
+                conn = ConnectionPool(**self.sqlite_config)
+            except Exception as exp:
+                print("Error:", exp)
+        return conn
+
+
+    def database_type(self):
+        return self.db_type

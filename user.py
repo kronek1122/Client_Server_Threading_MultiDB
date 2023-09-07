@@ -9,7 +9,7 @@ class User:
 
     def __init__(self):
         self.active_user = ''
-        self.db = DatabaseSelector().database_type()
+        self.db = DatabaseSelector().connection_db_manager()
 
 
     def register(self, username, password, is_admin='false'):
