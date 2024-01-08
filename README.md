@@ -1,6 +1,6 @@
 # Client_Server
 
-Simple Client-Server API with database support and multi-threading.
+Simple Client-Server Application with database support and multi-threading.
 Configured to work with Sqlite and Postgresql database.
 
 The application allows you to register, log in, check the list of users, send messages between users, and check your inbox etc.
